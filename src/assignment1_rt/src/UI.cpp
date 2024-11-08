@@ -91,7 +91,7 @@ int main (int argc, char **argv)
 
     // spawn turtle2
     turtlesim::Spawn srv;
-    srv.request.x = 10.5/2;  
+    srv.request.x = 10.5;  
 	srv.request.y = 11.0/2;
 	srv.request.theta = 0.0;
 	srv.request.name = "turtle2";
