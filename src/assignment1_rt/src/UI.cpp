@@ -28,48 +28,47 @@ void UI()
     std::vector<double> twist_vals{0,0,0};
     std::string turtle_name;
     std::string robot_twise;
-    while(1){
-        // initializations
-        turtle_name="";
+    // initializations
+    turtle_name="";
+    robot_twise = "";
+        
+        
+    // take the name of the turtle as input
+    while (turtle_name!="turtle1" && turtle_name!="turtle2")
+    {
+        std::cout << "Enter turtle name: " << std::endl;
+        std::cin >> turtle_name;
+    }
+    // take the twist of the turtle as input
+    std::vector<std::string> user_msgs = std::vector<std::string>({"x: ","y: ","yaw: "});
+    
+    for (int i=0;i<3;i++)
+    {
+        while(!is_number(robot_twise))
+        {
+            std::cout << user_msgs[i] << std::endl;
+            std::cin >> robot_twise;
+        }
+        twist_vals[i] = stod(robot_twise);
         robot_twise = "";
-        
-        
-        // take the name of the turtle as input
-        while (turtle_name!="turtle1" && turtle_name!="turtle2")
-        {
-            std::cout << "Enter turtle name: " << std::endl;
-            std::cin >> turtle_name;
-        }
-        // take the twist of the turtle as input
-        std::vector<std::string> user_msgs = std::vector<std::string>({"x: ","y: ","yaw: "});
-        
-        for (int i=0;i<3;i++)
-        {
-            while(!is_number(robot_twise))
-            {
-                std::cout << user_msgs[i] << std::endl;
-                std::cin >> robot_twise;
-            }
-            twist_vals[i] = stod(robot_twise);
-            robot_twise = "";
-
-        }
-        // assign the twist
-        twist.linear.x = twist_vals[0];
-        twist.linear.y = twist_vals[1];
-        twist.angular.z = twist_vals[2];
-        // start publishing
-        if(turtle_name == "turtle1")
-            turtle1_commander.publish(twist);
-        else
-            turtle2_commander.publish(twist);
-        sleep(1);
-        if(turtle_name == "turtle1")
-            turtle1_commander.publish(zero_twist);
-        else
-            turtle2_commander.publish(zero_twist);
 
     }
+    // assign the twist
+    twist.linear.x = twist_vals[0];
+    twist.linear.y = twist_vals[1];
+    twist.angular.z = twist_vals[2];
+    // start publishing
+    if(turtle_name == "turtle1")
+        turtle1_commander.publish(twist);
+    else
+        turtle2_commander.publish(twist);
+    sleep(1);
+    if(turtle_name == "turtle1")
+        turtle1_commander.publish(zero_twist);
+    else
+        turtle2_commander.publish(zero_twist);
+
+    
 
 }
 
@@ -83,6 +82,7 @@ int main (int argc, char **argv)
 	// Initialize the node, setup the NodeHandle for handling the communication with the ROS //system  
 	ros::init(argc, argv, "UI");  
 	ros::NodeHandle nh;
+    ros::Rate loop_rate(100);
 
     // Initialize the spawner
     ros::ServiceClient spawner =  nh.serviceClient<turtlesim::Spawn>("/spawn");
@@ -98,7 +98,16 @@ int main (int argc, char **argv)
     spawner.call(srv);
     
     // make UI work
-    UI();
+
+    while (ros::ok()) {
+        UI();
+
+        // Handle any callbacks (if needed)
+        ros::spinOnce();
+
+        // Sleep for the remainder of the loop time to maintain the fixed interval
+        loop_rate.sleep();
+    }
 
     ros::spin();
     return 0;
