@@ -35,13 +35,13 @@ void UI()
         
         
         // take the name of the turtle as input
-        while (turtle_name!="turtle1" || turtle_name!="turtle2")
+        while (turtle_name!="turtle1" && turtle_name!="turtle2")
         {
-            std::cout << "Enter turtle name:\n" << std::endl;
+            std::cout << "Enter turtle name: " << std::endl;
             std::cin >> turtle_name;
         }
         // take the twist of the turtle as input
-        std::vector<std::string> user_msgs = std::vector<std::string>({"x:\n","y:\n","yaw:\n"});
+        std::vector<std::string> user_msgs = std::vector<std::string>({"x: ","y: ","yaw: "});
         
         for (int i=0;i<3;i++)
         {
@@ -51,6 +51,7 @@ void UI()
                 std::cin >> robot_twise;
             }
             twist_vals[i] = stod(robot_twise);
+            robot_twise = "";
 
         }
         // assign the twist
@@ -85,8 +86,8 @@ int main (int argc, char **argv)
 
     // Initialize the spawner
     ros::ServiceClient spawner =  nh.serviceClient<turtlesim::Spawn>("/spawn");
-    ros::Publisher turtle1_commander = nh.advertise<geometry_msgs::Twist>("turtle1/cmd_vel",1);
-    ros::Publisher turtle2_commander = nh.advertise<geometry_msgs::Twist>("turtle2/cmd_vel",1);
+    turtle1_commander = nh.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel",1);
+    turtle2_commander = nh.advertise<geometry_msgs::Twist>("/turtle2/cmd_vel",1);
 
     // spawn turtle2
     turtlesim::Spawn srv;
