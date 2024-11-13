@@ -23,7 +23,6 @@ ros::Publisher turtles_dist_pub;
 turtlesim::Pose turtle1_pose;
 turtlesim::Pose turtle2_pose;
 geometry_msgs::Twist zero_twist;
-turtlesim::TeleportAbsolute pose_command;
 const double thresh = 1.0;
 
 double get_turtles_distance()
@@ -37,66 +36,115 @@ void monitor_turtle_distances()
     float y;
     const float min_thresh = 1.0;
     const float max_thresh = 10.0;
+    turtlesim::TeleportAbsolute pose1_command;
+    turtlesim::TeleportAbsolute pose2_command;
+    
+        
+    // // calculating distance
+    double dist = get_turtles_distance();
+    // // stop turtles if dist is less than thresh
+    bool teleport1 = false;
+    bool teleport2 = false;
+    if(dist<thresh)
+    {
+        teleport1 = true;
+        teleport2 = true;
+        turtle1_commander.publish(zero_twist);
+        turtle2_commander.publish(zero_twist);
+        // teleport both in oppoiste directions
+
+
+
+        float y_diff = abs(turtle2_pose.y - turtle1_pose.y);
+        float x_diff = abs(turtle2_pose.x - turtle1_pose.x);
+        float signy1 = 0;
+        float signy2 = 0;
+        float signx1 = 0;
+        float signx2 = 0;
+       
+
+        if(y_diff > x_diff)
+        {
+            // default turtle1 up and 2 down
+            signy1 = 1;
+            signy2 = -1;
+            if(turtle2_pose.y>turtle1_pose.y)
+            {
+                signy1 = -1;
+                signy2 = 1;
+            }
+        }else       
+        {
+            // default turtle1 right and 2 left
+            signx1 = 1;
+            signx2 = -1;
+            if(turtle2_pose.x>turtle1_pose.x)
+            {
+                signx1 = -1;
+                signx2 = 1;
+            }
+        } 
+        pose1_command.request.x = turtle1_pose.x + signx1*thresh;
+        pose1_command.request.y = turtle1_pose.y + signy1*thresh;
+
+        pose2_command.request.x = turtle2_pose.x + signx2*thresh;
+        pose2_command.request.y = turtle2_pose.y + signy2*thresh;
+
+    }
+
+
     // checking boundries
     if(turtle1_pose.x>max_thresh || turtle1_pose.x<min_thresh || turtle1_pose.y >max_thresh || turtle1_pose.y<min_thresh)
     {
+        teleport1 = true;
         turtle1_commander.publish(zero_twist);
         x = turtle1_pose.x;
         y = turtle1_pose.y;
-        pose_command.request.x = std::max(std::min(max_thresh,x),min_thresh);
-        pose_command.request.y = std::max(std::min(max_thresh,y),min_thresh);
-        turtle1_pose_commander.call(pose_command);
+        pose1_command.request.x = std::max(std::min(max_thresh,x),min_thresh);
+        pose1_command.request.y = std::max(std::min(max_thresh,y),min_thresh);
     }
         
     // checking boundries
     if(turtle2_pose.x>max_thresh || turtle2_pose.x<min_thresh || turtle2_pose.y >max_thresh || turtle2_pose.y<min_thresh)
     {
+        teleport2 = true;
         turtle2_commander.publish(zero_twist);
-        float x = turtle2_pose.x;
-        float y = turtle2_pose.y;
-        pose_command.request.x = std::max(std::min(max_thresh,x),min_thresh);
-        pose_command.request.y = std::max(std::min(max_thresh,y),min_thresh);
-        turtle2_pose_commander.call(pose_command);
+        x = turtle2_pose.x;
+        y = turtle2_pose.y;
+        pose2_command.request.x = std::max(std::min(max_thresh,x),min_thresh);
+        pose2_command.request.y = std::max(std::min(max_thresh,y),min_thresh);
     }
-        
-    // calculating distance
-    double dist = get_turtles_distance();
-    // stop turtles if dist is less than thresh
-    if(dist<thresh)
-    {
-        turtle1_commander.publish(zero_twist);
-        turtle2_commander.publish(zero_twist);
-        pose_command.request.x = turtle2_pose.x;
-        if(turtle2_pose.y>turtle1_pose.y)
-            pose_command.request.y = turtle2_pose.y+thresh;
-        else
-            pose_command.request.y = turtle2_pose.y-thresh;
-        turtle2_pose_commander.call(pose_command);
-    }
+    if(teleport1)
+        turtle1_pose_commander.call(pose1_command);
+    if(teleport2)
+        turtle2_pose_commander.call(pose2_command);
+
+
+
+
+
+    
     // publish the distance
     std_msgs::Float32 dist_msg;
     dist_msg.data = dist;
     turtles_dist_pub.publish(dist_msg);
 }
 
-void monitor_turtle_pose(const turtlesim::Pose::ConstPtr& pose ,turtlesim::Pose &turtle_pose,ros::Publisher &turtle_pub)
+void monitor_turtle_pose(const turtlesim::Pose::ConstPtr& pose ,turtlesim::Pose &turtle_pose)
 {
     // updating the pose
     turtle_pose.x = pose->x;
     turtle_pose.y = pose->y;
-    
-    
-    
 }
 
 
 void monitor_turtle1_pose(const turtlesim::Pose::ConstPtr& pose)
 {
-    monitor_turtle_pose(pose,turtle1_pose,turtle1_commander);
+    monitor_turtle_pose(pose,turtle1_pose);
 }
 void monitor_turtle2_pose(const turtlesim::Pose::ConstPtr& pose)
 {
-    monitor_turtle_pose(pose,turtle2_pose,turtle2_commander);
+    monitor_turtle_pose(pose,turtle2_pose);
 }
 
 

@@ -37,11 +37,9 @@ Before running the nodes make sure to run turtle sim using
 
 * Behaviour
   
-1) Assumes starting positions for the turtles that don't violate the condtions
-2) When a boundry is violated it teleports the vaiolator turtle into a safe pose and stops it
-3) When distance is violated turtle 2 is teleported into a safe space by teleporting up or down based on its relative pose with turtle1
-4) Also, both turtles stops if distance condition violated (1.0 threshold)
-5) The distance and the violations are checked using a 100/s rate function execution
+1) When a boundry is violated it stops the vaiolator and then teleports it into the nearest safe lcoation
+2) When distance is violated the turtles are stopped and then teleported into the nearest safe lcoation by an elegant way 
+3) The distance and the violations are checked using a 100Hz rate function execution
 
 * How to run ?
 
